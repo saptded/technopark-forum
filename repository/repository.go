@@ -53,3 +53,49 @@ func (storage *Storage) CreateUser(user *models.User) (*models.Users, error) {
 	_ = tx.Commit()
 	return nil, nil
 }
+
+func (storage *Storage) GetUserProfile(nickname string) (*models.User, error) {
+	query := `SELECT email, fullname, about FROM users WHERE nickname = $1`
+
+	user := new(models.User)
+	user.Nickname = nickname
+	err := storage.db.QueryRow(query, nickname).Scan(&user.Email, &user.Fullname, &user.About)
+	if err != nil {
+		return nil, models.UserNotFound(nickname)
+	}
+
+	return user, nil
+}
+
+func (storage *Storage) UpdateUserProfile(oldUser *models.User) (*models.User, error) {
+	query := `UPDATE users SET ` +
+		`email = COALESCE($1, users.email), fullname = COALESCE($2, users.fullname), about = COALESCE($3, users.about) ` +
+		`WHERE nickname=$4 RETURNING email, nickname, fullname, about`
+
+	var (
+		newEmail    *string = nil
+		newFullname *string = nil
+		newAbout    *string = nil
+	)
+	if oldUser.Email != "" {
+		newEmail = &oldUser.Email
+	}
+	if oldUser.Fullname != "" {
+		newFullname = &oldUser.Fullname
+	}
+	if oldUser.About != "" {
+		newAbout = &oldUser.About
+	}
+
+	newUser := new(models.User)
+	err := storage.db.QueryRow(query, &newEmail, &newFullname, &newAbout, oldUser.Nickname).
+		Scan(&newUser.Email, &newUser.Nickname, &newUser.Fullname, &newUser.About)
+	if err != nil {
+		if _, ok := err.(pgx.PgError); ok {
+			return nil, models.UsersProfileConflict(oldUser.Nickname)
+		}
+		return nil, models.UserNotFound(oldUser.Nickname)
+	}
+
+	return newUser, nil
+}

@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"encoding/json"
 	"github.com/mailru/easyjson"
 	"github.com/valyala/fasthttp"
 	"net/http"
@@ -17,12 +18,11 @@ func NewApi(usecase *usecase.Service) *Api {
 }
 
 func (api *Api) CreateUser(ctx *fasthttp.RequestCtx) {
-	var user models.User
-
-	_ = user.UnmarshalJSON(ctx.PostBody())
+	user := new(models.User)
+	_ = easyjson.Unmarshal(ctx.PostBody(), user)
 	user.Nickname = ctx.UserValue("nickname").(string)
 
-	users, err := api.usecase.CreateUser(&user)
+	users, err := api.usecase.CreateUser(user)
 	if err != nil {
 		ctx.Error(err.Error(), http.StatusInternalServerError)
 	}
@@ -34,6 +34,50 @@ func (api *Api) CreateUser(ctx *fasthttp.RequestCtx) {
 	} else {
 		ctx.SetStatusCode(http.StatusCreated)
 		response, _ = easyjson.Marshal(user)
+	}
+
+	ctx.SetContentType("application/json")
+	_, _ = ctx.Write(response)
+}
+
+func (api *Api) GetUserProfile(ctx *fasthttp.RequestCtx) {
+	nickname := ctx.UserValue("nickname").(string)
+
+	user, err := api.usecase.GetUserProfile(nickname)
+
+	var response []byte
+	if err == nil {
+		ctx.SetStatusCode(http.StatusOK)
+		response, _ = easyjson.Marshal(user)
+	} else if err.Error() == models.UserNotFound(nickname).Error() {
+		ctx.SetStatusCode(http.StatusNotFound)
+		response, _ = easyjson.Marshal(models.ErrorMessage(err))
+	}
+
+	ctx.SetContentType("application/json")
+	_, _ = ctx.Write(response)
+}
+
+func (api *Api) UpdateUserProfile(ctx *fasthttp.RequestCtx) {
+	user := new(models.User)
+	_ = easyjson.Unmarshal(ctx.PostBody(), user)
+	user.Nickname = ctx.UserValue("nickname").(string)
+
+	newUser, err := api.usecase.UpdateUserProfile(user)
+	var response []byte
+
+	if err == nil {
+		ctx.SetStatusCode(http.StatusOK)
+		response, _ = easyjson.Marshal(newUser)
+	} else {
+		switch {
+		case models.UserNotFound(user.Nickname).Error() == err.Error():
+			ctx.SetStatusCode(http.StatusNotFound)
+			response, _ = json.Marshal(err)
+		case models.UsersProfileConflict(user.Nickname).Error() == err.Error():
+			ctx.SetStatusCode(http.StatusConflict)
+			response, _ = json.Marshal(err)
+		}
 	}
 
 	ctx.SetContentType("application/json")

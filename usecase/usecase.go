@@ -18,3 +18,15 @@ func (service *Service) CreateUser(user *models.User) (*models.Users, error) {
 
 	return users, err
 }
+
+func (service *Service) GetUserProfile(nickname string) (*models.User, error) {
+	user, err := service.repository.GetUserProfile(nickname)
+
+	return user, err
+}
+
+func (service *Service) UpdateUserProfile(oldUser *models.User) (*models.User, error) {
+	newUser, err := service.repository.UpdateUserProfile(oldUser)
+
+	return newUser, err
+}

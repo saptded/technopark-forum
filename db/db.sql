@@ -1,8 +1,9 @@
 CREATE EXTENSION IF NOT EXISTS CITEXT;
+DROP TABLE IF EXISTS users, forum, thread, post, vote, forum_users CASCADE;
 
 CREATE TABLE users (
     email CITEXT UNIQUE NOT NULL,
-    nickname CITEXT COLLATE "C" NOT NULL,
+    nickname CITEXT COLLATE "C" UNIQUE NOT NULL,
     fullname VARCHAR NOT NULL,
     about TEXT DEFAULT NULL
 )
