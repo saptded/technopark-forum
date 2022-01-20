@@ -49,7 +49,7 @@ func (service *Service) UpdateUserProfile(oldUser *models.User) (*models.User, e
 // forum
 
 func (service *Service) CreateForum(forum *models.Forum) (*models.Forum, error) {
-	_, err := service.repository.GetUserProfile(forum.Author)
+	user, err := service.repository.GetUserProfile(forum.Author)
 	if err != nil {
 		return nil, err
 	}
@@ -62,9 +62,8 @@ func (service *Service) CreateForum(forum *models.Forum) (*models.Forum, error) 
 		}
 		return nil, err
 	}
+	forum.Author = user.Nickname
 
-	//forum.Posts = 0
-	//forum.Threads = 0
 	return forum, nil
 }
 

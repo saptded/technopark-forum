@@ -110,10 +110,10 @@ func (api *Api) UpdateUserProfile(ctx *fasthttp.RequestCtx) {
 		switch {
 		case models.UserNotFound(user.Nickname).Error() == err.Error():
 			ctx.SetStatusCode(http.StatusNotFound)
-			response, _ = json.Marshal(err)
+			response, _ = easyjson.Marshal(models.ErrorMessage(err))
 		case models.UsersProfileConflict(user.Nickname).Error() == err.Error():
 			ctx.SetStatusCode(http.StatusConflict)
-			response, _ = json.Marshal(err)
+			response, _ = easyjson.Marshal(models.ErrorMessage(err))
 		}
 	}
 

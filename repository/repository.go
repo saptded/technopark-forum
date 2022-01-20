@@ -119,7 +119,7 @@ func (storage *Storage) GetUserProfile(nickname string) (*models.User, error) {
 func (storage *Storage) UpdateUserProfile(oldUser *models.User) (*models.User, error) {
 	query := `UPDATE users SET ` +
 		`email = COALESCE($1, users.email), fullname = COALESCE($2, users.fullname), about = COALESCE($3, users.about) ` +
-		`WHERE nickname=$4 RETURNING email, nickname, fullname, about`
+		`WHERE nickname=$4 RETURNING email::TEXT, nickname::TEXT, fullname, about`
 
 	var (
 		newEmail    *string = nil
