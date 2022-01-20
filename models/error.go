@@ -12,4 +12,9 @@ var (
 
 	UsersProfileConflict = func(nickname string) error { return errors.Errorf("Can't find user with nickname %s\n", nickname) }
 	UserNotFound         = func(nickname string) error { return errors.Errorf("Can't find user with nickname %s\n", nickname) }
+	ForumNotFound        = func(slug string) error { return errors.Errorf("Can't find forum with slug %s\n", slug) }
+	Conflict             = errors.New("Entity already exist")
+	ThreadNotFound       = errors.New("Thread not found")
+	PostNotFound         = errors.New("Post not found")
+	UserNotFoundSimple   = errors.New("User not found")
 )

@@ -33,10 +33,32 @@ func initDB() (*pgx.ConnPool, error) {
 func initRouter(api *delivery.Api) *fasthttprouter.Router {
 	router := fasthttprouter.New()
 
+	// service
+	router.GET("/api/service/status", api.GetStatus)
+	router.GET("/api/service/clear", api.Clear)
+
 	// user
 	router.POST("/api/user/:nickname/create", api.CreateUser)
 	router.GET("/api/user/:nickname/profile", api.GetUserProfile)
 	router.POST("/api/user/:nickname/profile", api.UpdateUserProfile)
+
+	// forum
+	router.POST("/api/forum", api.CreateForum)
+	router.GET("/api/forum/:slug/details", api.GetForum)
+	router.POST("/api/forum/:slug/create", api.CreateThread)
+	router.GET("/api/forum/:slug/users", api.GetUsers)
+	router.GET("/api/forum/:slug/threads", api.GetThreads)
+
+	// thread
+	router.POST("/api/thread/:slug_or_id/create", api.CreatePosts)
+	router.GET("/api/thread/:slug_or_id/details", api.GetThread)
+	router.POST("/api/thread/:slug_or_id/details", api.UpdateThread)
+	router.GET("/api/thread/:slug_or_id/posts", api.GetPosts)
+	router.POST("/api/thread/:slug_or_id/vote", api.Vote)
+
+	// post
+	router.GET("/api/post/:id/details", api.GetPostDetails)
+	router.POST("/api/post/:id/details", api.UpdatePost)
 
 	return router
 }
