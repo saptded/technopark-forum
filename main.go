@@ -76,8 +76,8 @@ func main() {
 
 	router := initRouter(api)
 
-	log.Println("server start on 8080 port")
-	err = fasthttp.ListenAndServe(":8080", router.Handler)
+	log.Println("server start on 5000 port")
+	err = fasthttp.ListenAndServe(":5000", router.Handler)
 	if err != nil {
 		log.Fatalf("server failed: %s", err.Error())
 	}
