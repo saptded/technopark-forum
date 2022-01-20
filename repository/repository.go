@@ -152,7 +152,7 @@ func (storage *Storage) UpdateUserProfile(oldUser *models.User) (*models.User, e
 // forum
 
 func (storage *Storage) CreateForum(forum *models.Forum) error {
-	query := `INSERT INTO forums(title, author, slug) values ($1, $2, $3);`
+	query := `INSERT INTO forums(title, author, slug) values ($1, (SELECT nickname FROM users WHERE nickname=$2), $3);`
 
 	tx, err := storage.db.Begin()
 	if err != nil {
@@ -172,7 +172,7 @@ func (storage *Storage) CreateForum(forum *models.Forum) error {
 }
 
 func (storage *Storage) GetForum(slug string) (*models.Forum, error) {
-	query := `SELECT title, slug, author, posts, threads FROM forums WHERE slug=$1`
+	query := `SELECT title, slug::TEXT, author::TEXT, posts, threads FROM forums WHERE slug=$1`
 
 	forum := new(models.Forum)
 
@@ -284,13 +284,13 @@ JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 ORD
 
 func (storage *Storage) GetForumThreads(slug interface{}, limit []byte, since []byte, desc []byte) (*models.Threads, error) {
 	queryDesc := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
-WHERE forum = (SELECT id FROM forums WHERE slug=$1) ORDER BY created_at DESC LIMIT $2::TEXT::INTEGER`
+WHERE forum = $1 ORDER BY created_at DESC LIMIT $2::TEXT::INTEGER`
 	querySinceDesc := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
-WHERE forum = (SELECT id FROM forums WHERE slug=$1) AND created_at >= $2::TEXT::TIMESTAMPTZ ORDER BY created_at DESC LIMIT $2::TEXT::INTEGER`
+WHERE forum = $1 AND created_at >= $2::TEXT::TIMESTAMPTZ ORDER BY created_at DESC LIMIT $3::TEXT::INTEGER`
 	querySince := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
-WHERE forum = (SELECT id FROM forums WHERE slug=$1) AND created_at >= $2::TEXT::TIMESTAMPTZ ORDER BY created_at LIMIT $2::TEXT::INTEGER`
+WHERE forum = $1 AND created_at >= $2::TEXT::TIMESTAMPTZ ORDER BY created_at LIMIT $3::TEXT::INTEGER`
 	query := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
-WHERE forum = (SELECT slug FROM forums WHERE slug=$1) ORDER BY created_at LIMIT $2::TEXT::INTEGER`
+WHERE forum = $1 ORDER BY created_at LIMIT $2::TEXT::INTEGER`
 
 	var err error
 	var rows *pgx.Rows

@@ -26,7 +26,7 @@ CREATE TABLE threads
     forum      CITEXT COLLATE "C",
     message    TEXT NOT NULL,
     votes      INTEGER       DEFAULT 0,
-    slug       CITEXT UNIQUE DEFAULT NULL,
+    slug       CITEXT DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE
 );
 

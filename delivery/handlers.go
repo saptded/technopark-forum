@@ -235,6 +235,9 @@ func (api *Api) GetThreads(ctx *fasthttp.RequestCtx) {
 	} else if models.ForumNotFound(slug).Error() == err.Error() {
 		ctx.SetStatusCode(http.StatusNotFound)
 		response, _ = easyjson.Marshal(models.ErrorMessage(err))
+	} else {
+		ctx.SetStatusCode(http.StatusNotFound)
+		response, _ = easyjson.Marshal(models.ErrorMessage(err))
 	}
 
 	ctx.SetContentType("application/json")
