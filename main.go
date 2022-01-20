@@ -43,7 +43,7 @@ func initRouter(api *delivery.Api) *fasthttprouter.Router {
 	router.POST("/api/user/:nickname/profile", api.UpdateUserProfile)
 
 	// forum
-	router.POST("/api/forum", api.CreateForum)
+	router.POST("/api/forum/:slug", api.CreateForum)
 	router.GET("/api/forum/:slug/details", api.GetForum)
 	router.POST("/api/forum/:slug/create", api.CreateThread)
 	router.GET("/api/forum/:slug/users", api.GetUsers)
