@@ -104,11 +104,11 @@ func (storage *Storage) CreateUser(user *models.User) (*models.Users, error) {
 }
 
 func (storage *Storage) GetUserProfile(nickname string) (*models.User, error) {
-	query := `SELECT email, fullname, about FROM users WHERE nickname = $1`
+	query := `SELECT nickname, email, fullname, about FROM users WHERE nickname = $1`
 
 	user := new(models.User)
 	user.Nickname = nickname
-	err := storage.db.QueryRow(query, nickname).Scan(&user.Email, &user.Fullname, &user.About)
+	err := storage.db.QueryRow(query, nickname).Scan(&user.Nickname, &user.Email, &user.Fullname, &user.About)
 	if err != nil {
 		return nil, models.UserNotFound(nickname)
 	}
