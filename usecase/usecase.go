@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"github.com/jackc/pgx"
+	"strconv"
 	"technopark-forum/models"
 	"technopark-forum/repository"
 )
@@ -92,7 +93,7 @@ func (service *Service) CreateThread(slug string, threadData *models.Thread) (*m
 		return nil, err
 	}
 
-	thread, err := service.repository.GetThread(threadData.ID)
+	thread, err := service.repository.GetThread(strconv.Itoa(threadData.ID))
 	if err != nil {
 		return nil, err
 	}
