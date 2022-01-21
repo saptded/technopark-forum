@@ -244,15 +244,23 @@ func (storage *Storage) GetThread(slugOrID interface{}) (*models.Thread, error) 
 
 	_, err := strconv.Atoi(slugOrID.(string))
 
+	var slug *string = nil
+
 	if err != nil {
 		err = storage.db.QueryRow(queryBySlug, slugOrID).
-			Scan(&thread.ID, &thread.Title, &thread.Author, &thread.Forum, &thread.Message, &thread.Votes, &thread.Slug, &thread.Created)
+			Scan(&thread.ID, &thread.Title, &thread.Author, &thread.Forum, &thread.Message, &thread.Votes, slug, &thread.Created)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		err = storage.db.QueryRow(queryByID, slugOrID).
-			Scan(&thread.ID, &thread.Title, &thread.Author, &thread.Forum, &thread.Message, &thread.Votes, &thread.Slug, &thread.Created)
+			Scan(&thread.ID, &thread.Title, &thread.Author, &thread.Forum, &thread.Message, &thread.Votes, &slug, &thread.Created)
+		if err == nil {
+			thread.Slug = ""
+		} else {
+			thread.Slug = *slug
+		}
+
 		if err != nil {
 			return nil, err
 		}
@@ -338,12 +346,18 @@ WHERE forum = $1 ORDER BY created_at LIMIT $2::TEXT::INTEGER`
 		return nil, err
 	}
 
+	var slugMoc *string = nil
 	var threads models.Threads
 	for rows.Next() {
 		thread := new(models.Thread)
-		if err = rows.Scan(&thread.ID, &thread.Slug, &thread.Title, &thread.Message,
+		if err = rows.Scan(&thread.ID, &slugMoc, &thread.Title, &thread.Message,
 			&thread.Forum, &thread.Author, &thread.Created, &thread.Votes); err != nil {
 			return nil, err
+		}
+		if err == nil {
+			thread.Slug = ""
+		} else {
+			thread.Slug = *slugMoc
 		}
 
 		threads = append(threads, *thread)
