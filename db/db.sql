@@ -55,8 +55,8 @@ CREATE TABLE posts
 CREATE TABLE votes
 (
     id            SERIAL,
-    user_nickname CITEXT  NOT NULL,
-    thread_id     INTEGER NOT NULL REFERENCES threads,
+    user_nickname CITEXT  NOT NULL REFERENCES users (nickname),
+    thread_id     INTEGER NOT NULL REFERENCES threads (id),
     voice         INTEGER,
     prev_voice    INTEGER DEFAULT 0,
     CONSTRAINT unique_user_and_thread UNIQUE (user_nickname, thread_id)

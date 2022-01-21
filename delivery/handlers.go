@@ -282,10 +282,10 @@ func (api *Api) GetThread(ctx *fasthttp.RequestCtx) {
 
 	var response []byte
 	if err != nil {
+		ctx.SetStatusCode(http.StatusNotFound)
 		if thread == nil {
-			response = []byte("[]")
+			response, _ = easyjson.Marshal(models.ErrorMessage(models.ThreadNotFound))
 		} else {
-			ctx.SetStatusCode(http.StatusNotFound)
 			response, _ = easyjson.Marshal(models.ErrorMessage(err))
 		}
 	} else {
@@ -359,7 +359,7 @@ func (api *Api) Vote(ctx *fasthttp.RequestCtx) {
 	thread, err := api.usecase.PutVote(slugOrID, vote)
 	if err != nil {
 		ctx.SetStatusCode(http.StatusNotFound)
-		response, _ := json.Marshal(err)
+		response, _ := json.Marshal(models.Conflict)
 		ctx.SetContentType("application/json")
 		_, _ = ctx.Write(response)
 		return
