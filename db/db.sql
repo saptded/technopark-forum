@@ -21,12 +21,12 @@ CREATE TABLE forums
 CREATE TABLE threads
 (
     id         SERIAL PRIMARY KEY,
-    title      TEXT NOT NULL,
-    author     CITEXT COLLATE "C",
-    forum      CITEXT COLLATE "C",
-    message    TEXT NOT NULL,
+    title      TEXT   NOT NULL,
+    author     CITEXT NOT NULL,
+    forum      CITEXT NOT NULL,
+    message    TEXT   NOT NULL,
     votes      INTEGER DEFAULT 0,
-    slug       CITEXT  DEFAULT NULL,
+    slug       CITEXT,
     created_at TIMESTAMP WITH TIME ZONE
 );
 

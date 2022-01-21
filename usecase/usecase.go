@@ -82,6 +82,12 @@ func (service *Service) CreateThread(slug string, threadData *models.Thread) (*m
 	if err != nil {
 		return nil, models.ForumNotFound(threadData.Slug)
 	}
+	if threadData.Slug != "" {
+		threadExisting, err := service.repository.GetThread(threadData.Slug)
+		if err == nil {
+			return threadExisting, models.Conflict
+		}
+	}
 
 	thread, err := service.repository.CreateThread(user, forum, threadData)
 	if err != nil {
