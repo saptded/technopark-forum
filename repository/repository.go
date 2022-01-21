@@ -248,22 +248,21 @@ func (storage *Storage) GetThread(slugOrID interface{}) (*models.Thread, error) 
 
 	if err != nil {
 		err = storage.db.QueryRow(queryBySlug, slugOrID).
-			Scan(&thread.ID, &thread.Title, &thread.Author, &thread.Forum, &thread.Message, &thread.Votes, slug, &thread.Created)
+			Scan(&thread.ID, &thread.Title, &thread.Author, &thread.Forum, &thread.Message, &thread.Votes, &slug, &thread.Created)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		err = storage.db.QueryRow(queryByID, slugOrID).
 			Scan(&thread.ID, &thread.Title, &thread.Author, &thread.Forum, &thread.Message, &thread.Votes, &slug, &thread.Created)
-		if slug == nil {
-			thread.Slug = ""
-		} else {
-			thread.Slug = *slug
-		}
-
 		if err != nil {
 			return nil, err
 		}
+	}
+	if slug == nil {
+		thread.Slug = ""
+	} else {
+		thread.Slug = *slug
 	}
 
 	return thread, nil
