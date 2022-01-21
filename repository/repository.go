@@ -266,9 +266,9 @@ func (storage *Storage) GetForumUsers(slug interface{}, limit []byte, since []by
 	queryDesc := `SELECT email, forum_users.nickname, fullname, about FROM forum_users 
 JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 ORDER BY lower(forum_users.nickname) DESC LIMIT $2::TEXT::INTEGER`
 	querySinceDesc := `SELECT email, forum_users.nickname, fullname, about FROM forum_users 
-JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 AND lower(forum_users.forum) > lower($2) ORDER BY lower(forum_users.nickname) DESC LIMIT $3::TEXT::INTEGER`
+JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 AND lower(forum_users.nickname) < lower($2) ORDER BY lower(forum_users.nickname) DESC LIMIT $3::TEXT::INTEGER`
 	querySince := `SELECT email, forum_users.nickname, fullname, about FROM forum_users 
-JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 AND lower(forum_users.forum) > lower($2) ORDER BY lower(forum_users.nickname) LIMIT $3::TEXT::INTEGER`
+JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 AND lower(forum_users.nickname) > lower($2) ORDER BY lower(forum_users.nickname) LIMIT $3::TEXT::INTEGER`
 	query := `SELECT email, forum_users.nickname, fullname, about FROM forum_users 
 JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 ORDER BY lower(forum_users.nickname) LIMIT $2::TEXT::INTEGER`
 
