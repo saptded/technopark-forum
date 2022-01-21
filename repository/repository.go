@@ -184,12 +184,12 @@ func (storage *Storage) GetForum(slug string) (*models.Forum, error) {
 	return forum, err
 }
 
-func (storage *Storage) CreateThread(user *models.User, forum *models.Forum, thread *models.Thread) error {
-	query := `INSERT INTO threads(title, author, forum, message, slug, created_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+func (storage *Storage) CreateThread(user *models.User, forum *models.Forum, thread *models.Thread) (*models.Thread, error) {
+	query := `INSERT INTO threads(title, author, forum, message, slug, created_at) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING RETURNING id`
 
 	tx, err := storage.db.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer func(tx *pgx.Tx) {
 		_ = tx.Rollback()
@@ -199,7 +199,19 @@ func (storage *Storage) CreateThread(user *models.User, forum *models.Forum, thr
 		thread.Message, thread.Slug, thread.Created).
 		Scan(&thread.ID)
 	if err != nil {
-		return err
+		existingThread := new(models.Thread)
+		queryExists := `SELECT id, slug::TEXT, title, message, forum::TEXT, author::TEXT, created_at, votes FROM threads WHERE slug=$1`
+
+		if err = tx.QueryRow(queryExists, thread.Slug).
+			Scan(&existingThread.ID, &existingThread.Slug, &existingThread.Title,
+				&existingThread.Message, &existingThread.Forum, &existingThread.Author, &existingThread.Created,
+				&existingThread.Votes); err == nil {
+
+			_ = tx.Rollback()
+			return existingThread, models.Conflict
+		}
+
+		return nil, err
 	}
 
 	queryUpdateForumUsers := `INSERT INTO forum_users(nickname, forum) VALUES ($1, $2) ON CONFLICT DO NOTHING`
@@ -208,7 +220,7 @@ func (storage *Storage) CreateThread(user *models.User, forum *models.Forum, thr
 	_, _ = storage.db.Exec(queryUpdateForum, thread.Forum)
 
 	_ = tx.Commit()
-	return nil
+	return thread, nil
 }
 
 func (storage *Storage) GetThread(slugOrID interface{}) (*models.Thread, error) {

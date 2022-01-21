@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"github.com/jackc/pgx"
-	"strconv"
 	"technopark-forum/models"
 	"technopark-forum/repository"
 )
@@ -84,19 +83,26 @@ func (service *Service) CreateThread(slug string, threadData *models.Thread) (*m
 		return nil, models.ForumNotFound(threadData.Slug)
 	}
 
-	err = service.repository.CreateThread(user, forum, threadData)
+	thread, err := service.repository.CreateThread(user, forum, threadData)
 	if err != nil {
-		if pgError, ok := err.(pgx.PgError); ok && pgError.Code == "23505" {
-			newThread, _ := service.repository.GetThread(threadData.Slug)
-			return newThread, models.Conflict
+		if thread != nil {
+			return thread, err
+		} else {
+			return nil, err
 		}
-		return nil, err
+		//if pgError, ok := err.(pgx.PgError); ok && pgError.Code == "23505" {
+		//	newThread, _ := service.repository.GetThread(strconv.Itoa(threadData.ID))
+		//	return newThread, models.Conflict
+		//}
+		//return nil, err
 	}
 
-	thread, err := service.repository.GetThread(strconv.Itoa(threadData.ID))
-	if err != nil {
-		return nil, err
-	}
+	thread.Forum = forum.Slug
+	thread.Author = user.Nickname
+	//thread, err := service.repository.GetThread(strconv.Itoa(threadData.ID))
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return thread, nil
 }
