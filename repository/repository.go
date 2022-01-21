@@ -295,7 +295,7 @@ JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 ORD
 
 	for rows.Next() {
 		user := new(models.User)
-		if err = rows.Scan(&user.Nickname, &user.Email, &user.About, &user.Fullname); err != nil {
+		if err = rows.Scan(&user.Email, &user.Nickname, &user.Fullname, &user.About); err != nil {
 			rows.Close()
 			return nil, err
 		}
