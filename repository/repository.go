@@ -357,10 +357,6 @@ WHERE forum = $1 ORDER BY created_at LIMIT $2::TEXT::INTEGER`
 // threads
 
 func (storage *Storage) CreatePosts(slugOrID interface{}, posts *models.Posts) (*models.Posts, error) {
-	if len(*posts) == 0 {
-		return nil, nil
-	}
-
 	queryBySlug := `SELECT id, forum FROM threads WHERE slug=$1`
 	queryByID := `SELECT id, forum FROM threads WHERE id=$1`
 
@@ -388,6 +384,10 @@ func (storage *Storage) CreatePosts(slugOrID interface{}, posts *models.Posts) (
 		if err = tx.QueryRow(queryByID, threadIdentifier).Scan(&threadIdentifier, &forumSlug); err != nil {
 			return nil, models.ThreadNotFound
 		}
+	}
+
+	if len(*posts) == 0 {
+		return nil, nil
 	}
 
 	//queryGetForum := `SELECT id FROM forums WHERE slug=$1`
@@ -1000,6 +1000,9 @@ func (storage *Storage) GetPostDetails(id *string, related []byte) (*models.Post
 }
 
 func (storage *Storage) UpdatePostDetails(id *string, postUpd *models.PostUpdate) (*models.Post, int) {
+	query := `UPDATE posts SET message=coalesce($2,message), is_edited=(CASE WHEN $2 IS NULL OR $2 = message THEN FALSE ELSE TRUE END) 
+WHERE ID=$1 RETURNING id, author::TEXT, message, created_at, forum::TEXT, thread, is_edited, parent`
+
 	tx, err := storage.db.Begin()
 	if err != nil {
 		return nil, http.StatusInternalServerError
@@ -1010,7 +1013,7 @@ func (storage *Storage) UpdatePostDetails(id *string, postUpd *models.PostUpdate
 
 	postUpdated := models.Post{}
 
-	err = tx.QueryRow("UPDATE posts SET message=coalesce($2,message), is_edited=(CASE WHEN $2 IS NULL OR $2 = message THEN FALSE ELSE TRUE END) WHERE ID=$1 RETURNING id, author::TEXT, message, created_at, forum::TEXT, thread, is_edited, parent", id, postUpd.Message).
+	err = tx.QueryRow(query, id, postUpd.Message).
 		Scan(&postUpdated.ID, &postUpdated.Author, &postUpdated.Message,
 			&postUpdated.Created, &postUpdated.Forum, &postUpdated.Thread,
 			&postUpdated.IsEdited, &postUpdated.Parent)

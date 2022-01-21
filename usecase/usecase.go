@@ -134,8 +134,8 @@ func (service *Service) GetForumThreads(slug string, limit []byte, since []byte,
 }
 
 func (service *Service) CreatePosts(slugOrID interface{}, postsArr *models.Posts) (*models.Posts, error) {
-
 	posts, err := service.repository.CreatePosts(slugOrID, postsArr)
+
 	return posts, err
 }
 

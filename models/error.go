@@ -18,4 +18,5 @@ var (
 	PostNotFound         = errors.New("Post not found")
 	UserNotFoundSimple   = errors.New("User not found")
 	ThreadAlreadyExists  = errors.New("Thread already exist")
+	EmptyRequest         = errors.New("Empty request")
 )

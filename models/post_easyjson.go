@@ -321,7 +321,7 @@ func easyjson5a72dc82DecodeTechnoparkForumModels3(in *jlexer.Lexer, out *Post) {
 			out.Author = string(in.String())
 		case "message":
 			out.Message = string(in.String())
-		case "is_edited":
+		case "isEdited":
 			out.IsEdited = bool(in.Bool())
 		case "forum":
 			out.Forum = string(in.String())
@@ -386,7 +386,7 @@ func easyjson5a72dc82EncodeTechnoparkForumModels3(out *jwriter.Writer, in Post) 
 		out.String(string(in.Message))
 	}
 	{
-		const prefix string = ",\"is_edited\":"
+		const prefix string = ",\"isEdited\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.IsEdited))
 	}

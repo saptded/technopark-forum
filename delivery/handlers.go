@@ -380,7 +380,7 @@ func (api *Api) GetPostDetails(ctx *fasthttp.RequestCtx) {
 
 	switch statusCode {
 	case http.StatusOK:
-		response, _ := easyjson.Marshal(postDetails)
+		response, _ := easyjson.Marshal(*postDetails)
 		_, _ = ctx.Write(response)
 	case http.StatusNotFound:
 		response, _ := easyjson.Marshal(models.ErrorMessage(models.PostNotFound))
