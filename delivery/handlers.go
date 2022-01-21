@@ -1,7 +1,6 @@
 package delivery
 
 import (
-	"encoding/json"
 	"github.com/mailru/easyjson"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
@@ -350,23 +349,22 @@ func (api *Api) GetPosts(ctx *fasthttp.RequestCtx) {
 }
 
 func (api *Api) Vote(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/json")
 	vote := new(models.Vote)
 	_ = easyjson.Unmarshal(ctx.PostBody(), vote)
 
 	slugOrID := ctx.UserValue("slug_or_id")
 
+	var response []byte
 	thread, err := api.usecase.PutVote(slugOrID, vote)
 	if err != nil {
 		ctx.SetStatusCode(http.StatusNotFound)
-		response, _ := json.Marshal(models.Conflict)
-		ctx.SetContentType("application/json")
-		_, _ = ctx.Write(response)
-		return
+		response, _ = easyjson.Marshal(models.ErrorMessage(models.Conflict))
+	} else {
+		ctx.SetStatusCode(http.StatusOK)
+		response, _ = easyjson.Marshal(thread)
 	}
 
-	ctx.SetStatusCode(http.StatusOK)
-	response, _ := thread.MarshalJSON()
+	ctx.SetContentType("application/json")
 	_, _ = ctx.Write(response)
 }
 
@@ -384,7 +382,6 @@ func (api *Api) GetPostDetails(ctx *fasthttp.RequestCtx) {
 		_, _ = ctx.Write(response)
 	case http.StatusNotFound:
 		response, _ := easyjson.Marshal(models.ErrorMessage(models.PostNotFound))
-		ctx.SetContentType("application/json")
 		_, _ = ctx.Write(response)
 	}
 }

@@ -50,7 +50,6 @@ func (storage *Storage) Clear() error {
 		_ = tx.Commit()
 	}(tx)
 
-	//_, err = tx.Exec("TRUNCATE forum_users, vote, post, thread, forum, users RESTART IDENTITY CASCADE")
 	_, err = tx.Exec("TRUNCATE forum_users, posts, threads, forums, users RESTART IDENTITY CASCADE")
 	if err != nil {
 		return err
@@ -390,11 +389,6 @@ func (storage *Storage) CreatePosts(slugOrID interface{}, posts *models.Posts) (
 		return nil, nil
 	}
 
-	//queryGetForum := `SELECT id FROM forums WHERE slug=$1`
-	//if err = tx.QueryRow(queryGetForum, &forumSlug).Scan(&forumID); err != nil {
-	//	return nil, err
-	//}
-
 	query := `SELECT array_agg(nextval('posts_id_seq')::BIGINT) FROM generate_series(1, $1)`
 	ids := make([]int64, 0, len(*posts))
 	if err = tx.QueryRow(query, len(*posts)).Scan(&ids); err != nil {
@@ -523,15 +517,6 @@ RETURNING  id, slug, title, message, forum, author, created_at, votes`
 	defer func(tx *pgx.Tx) {
 		_ = tx.Commit()
 	}(tx)
-
-	//var ID int
-	//var fs string
-	//if ID, err = strconv.Atoi(*slugOrID); err != nil {
-	//	if err = tx.QueryRow("SELECT id, forum::TEXT FROM thread WHERE slug=$1", slugOrID).Scan(&ID, &fs);
-	//		err != nil {
-	//		return nil, http.StatusNotFound
-	//	}
-	//}
 
 	thread := new(models.Thread)
 
@@ -935,16 +920,23 @@ RETURNING id,
 
 	thread := new(models.Thread)
 
-	if err != nil {
-		err = tx.QueryRow(putVoteByThreadSlug, vote.Nickname, slugOrID, vote.Voice).Scan(&thread.ID, &thread.Slug, &thread.Title, &thread.Message, &thread.Forum, &thread.Author, &thread.Created, &thread.Votes)
-	} else {
-		err = tx.QueryRow(putVoteByThreadID, vote.Nickname, slugOrID, vote.Voice).Scan(&thread.ID, &thread.Slug, &thread.Title, &thread.Message, &thread.Forum, &thread.Author, &thread.Created, &thread.Votes)
-	}
+	var slug *string
 
+	if err != nil {
+		err = tx.QueryRow(putVoteByThreadSlug, vote.Nickname, slugOrID, vote.Voice).Scan(&thread.ID, &slug, &thread.Title, &thread.Message, &thread.Forum, &thread.Author, &thread.Created, &thread.Votes)
+	} else {
+		err = tx.QueryRow(putVoteByThreadID, vote.Nickname, slugOrID, vote.Voice).Scan(&thread.ID, &slug, &thread.Title, &thread.Message, &thread.Forum, &thread.Author, &thread.Created, &thread.Votes)
+	}
+	if slug == nil {
+		thread.Slug = ""
+	} else {
+		thread.Slug = *slug
+	}
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
+
 	return thread, nil
 }
 
