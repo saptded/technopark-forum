@@ -183,6 +183,9 @@ func (api *Api) CreateThread(ctx *fasthttp.RequestCtx) {
 	} else if err == models.Conflict {
 		ctx.SetStatusCode(http.StatusConflict)
 		response, _ = easyjson.Marshal(gotThread)
+	} else {
+		ctx.SetStatusCode(http.StatusConflict)
+		response, _ = easyjson.Marshal(models.ErrorMessage(err))
 	}
 
 	ctx.SetContentType("application/json")

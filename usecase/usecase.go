@@ -92,7 +92,12 @@ func (service *Service) CreateThread(slug string, threadData *models.Thread) (*m
 		return nil, err
 	}
 
-	return threadData, nil
+	thread, err := service.repository.GetThread(threadData.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return thread, nil
 }
 
 func (service *Service) GetForumUsers(slug string, limit []byte, since []byte, desc []byte) (*models.Users, error) {
