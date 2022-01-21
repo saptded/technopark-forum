@@ -76,7 +76,7 @@ func (storage *Storage) CreateUser(user *models.User) (*models.Users, error) {
 		return nil, err
 	}
 	if response.RowsAffected() == 0 {
-		querySelect := `SELECT email, nickname, fullname, about FROM users WHERE email=$1 OR nickname=$2`
+		querySelect := `SELECT email::TEXT, nickname::TEXT, fullname, about FROM users WHERE email=$1 OR nickname=$2`
 		rows, err := tx.Query(querySelect, user.Email, user.Nickname)
 		if err != nil {
 			return nil, err
@@ -102,7 +102,7 @@ func (storage *Storage) CreateUser(user *models.User) (*models.Users, error) {
 }
 
 func (storage *Storage) GetUserProfile(nickname string) (*models.User, error) {
-	query := `SELECT nickname, email, fullname, about FROM users WHERE nickname = $1`
+	query := `SELECT nickname::TEXT, email::TEXT, fullname, about FROM users WHERE nickname = $1`
 
 	user := new(models.User)
 	user.Nickname = nickname
@@ -150,7 +150,7 @@ func (storage *Storage) UpdateUserProfile(oldUser *models.User) (*models.User, e
 // forum
 
 func (storage *Storage) CreateForum(forum *models.Forum) error {
-	query := `INSERT INTO forums(title, author, slug) values ($1, (SELECT nickname FROM users WHERE nickname=$2), $3);`
+	query := `INSERT INTO forums(title, author, slug) values ($1, (SELECT nickname::TEXT FROM users WHERE nickname=$2), $3);`
 
 	tx, err := storage.db.Begin()
 	if err != nil {
@@ -237,8 +237,8 @@ func (storage *Storage) CreateThread(user *models.User, forum *models.Forum, thr
 }
 
 func (storage *Storage) GetThread(slugOrID interface{}) (*models.Thread, error) {
-	queryBySlug := `SELECT id, title, author, forum, message, votes, slug, created_at FROM threads WHERE slug=$1`
-	queryByID := `SELECT id, title, author, forum, message, votes, slug, created_at FROM threads WHERE id=$1`
+	queryBySlug := `SELECT id, title, author::TEXT, forum::TEXT, message, votes, slug::TEXT, created_at FROM threads WHERE slug=$1`
+	queryByID := `SELECT id, title, author::TEXT, forum::TEXT, message, votes, slug::TEXT, created_at FROM threads WHERE id=$1`
 
 	thread := new(models.Thread)
 
@@ -269,13 +269,13 @@ func (storage *Storage) GetThread(slugOrID interface{}) (*models.Thread, error) 
 }
 
 func (storage *Storage) GetForumUsers(slug interface{}, limit []byte, since []byte, desc []byte) (*models.Users, error) {
-	queryDesc := `SELECT email, forum_users.nickname, fullname, about FROM forum_users 
+	queryDesc := `SELECT email::TEXT, forum_users.nickname::TEXT, fullname, about FROM forum_users 
 JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 ORDER BY lower(forum_users.nickname) DESC LIMIT $2::TEXT::INTEGER`
-	querySinceDesc := `SELECT email, forum_users.nickname, fullname, about FROM forum_users 
+	querySinceDesc := `SELECT email::TEXT, forum_users.nickname::TEXT, fullname, about FROM forum_users 
 JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 AND lower(forum_users.nickname) < lower($2) ORDER BY lower(forum_users.nickname) DESC LIMIT $3::TEXT::INTEGER`
-	querySince := `SELECT email, forum_users.nickname, fullname, about FROM forum_users 
+	querySince := `SELECT email::TEXT, forum_users.nickname::TEXT, fullname, about FROM forum_users 
 JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 AND lower(forum_users.nickname) > lower($2) ORDER BY lower(forum_users.nickname) LIMIT $3::TEXT::INTEGER`
-	query := `SELECT email, forum_users.nickname, fullname, about FROM forum_users 
+	query := `SELECT email::TEXT, forum_users.nickname::TEXT, fullname, about FROM forum_users 
 JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 ORDER BY lower(forum_users.nickname) LIMIT $2::TEXT::INTEGER`
 
 	var err error
@@ -314,13 +314,13 @@ JOIN users u on forum_users.nickname = u.nickname WHERE forum_users.forum=$1 ORD
 }
 
 func (storage *Storage) GetForumThreads(slug interface{}, limit []byte, since []byte, desc []byte) (*models.Threads, error) {
-	queryDesc := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
+	queryDesc := `SELECT id, slug::TEXT, title, message, forum::TEXT, author::TEXT, created_at, votes FROM threads
 WHERE forum = $1 ORDER BY created_at DESC LIMIT $2::TEXT::INTEGER`
-	querySinceDesc := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
+	querySinceDesc := `SELECT id, slug::TEXT, title, message, forum::TEXT, author::TEXT, created_at, votes FROM threads
 WHERE forum = $1 AND created_at <= $2::TEXT::TIMESTAMPTZ ORDER BY created_at DESC LIMIT $3::TEXT::INTEGER`
-	querySince := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
+	querySince := `SELECT id, slug::TEXT, title, message, forum::TEXT, author::TEXT, created_at, votes FROM threads
 WHERE forum = $1 AND created_at >= $2::TEXT::TIMESTAMPTZ ORDER BY created_at LIMIT $3::TEXT::INTEGER`
-	query := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
+	query := `SELECT id, slug::TEXT, title, message, forum::TEXT, author::TEXT, created_at, votes FROM threads
 WHERE forum = $1 ORDER BY created_at LIMIT $2::TEXT::INTEGER`
 
 	var err error
@@ -369,8 +369,8 @@ WHERE forum = $1 ORDER BY created_at LIMIT $2::TEXT::INTEGER`
 // threads
 
 func (storage *Storage) CreatePosts(slugOrID interface{}, posts *models.Posts) (*models.Posts, error) {
-	queryBySlug := `SELECT id, forum FROM threads WHERE slug=$1`
-	queryByID := `SELECT id, forum FROM threads WHERE id=$1`
+	queryBySlug := `SELECT id, forum::TEXT FROM threads WHERE slug=$1`
+	queryByID := `SELECT id, forum::TEXT FROM threads WHERE id=$1`
 
 	tx, err := storage.db.Begin()
 	if err != nil {
@@ -521,7 +521,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING created_at`
 
 func (storage *Storage) UpdateThread(threadID int, threadUpdate *models.ThreadUpdate) (*models.Thread, error) {
 	query := `UPDATE threads SET message = coalesce($1, message), title = coalesce($2,title) WHERE id = $3 
-RETURNING  id, slug, title, message, forum, author, created_at, votes`
+RETURNING  id, slug::TEXT, title, message, forum::TEXT, author::TEXT, created_at, votes`
 
 	tx, err := storage.db.Begin()
 	if err != nil {

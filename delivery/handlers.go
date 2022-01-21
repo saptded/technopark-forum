@@ -358,7 +358,7 @@ func (api *Api) Vote(ctx *fasthttp.RequestCtx) {
 	thread, err := api.usecase.PutVote(slugOrID, vote)
 	if err != nil {
 		ctx.SetStatusCode(http.StatusNotFound)
-		response, _ = easyjson.Marshal(models.ErrorMessage(models.Conflict))
+		response, _ = easyjson.Marshal(models.ErrorMessage(models.ThreadNotFound))
 	} else {
 		ctx.SetStatusCode(http.StatusOK)
 		response, _ = easyjson.Marshal(thread)
@@ -374,7 +374,7 @@ func (api *Api) GetPostDetails(ctx *fasthttp.RequestCtx) {
 	related := ctx.QueryArgs().Peek("related")
 
 	postDetails, statusCode := api.usecase.GetPostDetails(&id, related)
-	ctx.SetStatusCode(statusCode)
+	ctx.SetStatusCode(http.StatusOK)
 
 	switch statusCode {
 	case http.StatusOK:
