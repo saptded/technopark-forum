@@ -255,7 +255,7 @@ func (storage *Storage) GetThread(slugOrID interface{}) (*models.Thread, error) 
 	} else {
 		err = storage.db.QueryRow(queryByID, slugOrID).
 			Scan(&thread.ID, &thread.Title, &thread.Author, &thread.Forum, &thread.Message, &thread.Votes, &slug, &thread.Created)
-		if err == nil {
+		if slug == nil {
 			thread.Slug = ""
 		} else {
 			thread.Slug = *slug
@@ -354,7 +354,7 @@ WHERE forum = $1 ORDER BY created_at LIMIT $2::TEXT::INTEGER`
 			&thread.Forum, &thread.Author, &thread.Created, &thread.Votes); err != nil {
 			return nil, err
 		}
-		if err == nil {
+		if slugMoc == nil {
 			thread.Slug = ""
 		} else {
 			thread.Slug = *slugMoc
