@@ -286,7 +286,7 @@ func (storage *Storage) GetForumThreads(slug interface{}, limit []byte, since []
 	queryDesc := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
 WHERE forum = $1 ORDER BY created_at DESC LIMIT $2::TEXT::INTEGER`
 	querySinceDesc := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
-WHERE forum = $1 AND created_at >= $2::TEXT::TIMESTAMPTZ ORDER BY created_at DESC LIMIT $3::TEXT::INTEGER`
+WHERE forum = $1 AND created_at <= $2::TEXT::TIMESTAMPTZ ORDER BY created_at DESC LIMIT $3::TEXT::INTEGER`
 	querySince := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
 WHERE forum = $1 AND created_at >= $2::TEXT::TIMESTAMPTZ ORDER BY created_at LIMIT $3::TEXT::INTEGER`
 	query := `SELECT id, slug, title, message, forum, author, created_at, votes FROM threads
