@@ -3,7 +3,6 @@ package repository
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"github.com/emirpasic/gods/sets/treeset"
 	"github.com/jackc/pgx"
 	"log"
@@ -438,15 +437,16 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING created_at`
 	if _, err := tx.Prepare("insertIntoPost", queryInsertPost); err != nil {
 		return nil, err
 	}
+	currentPosts := new(models.Posts)
 	for index, post := range *posts {
 		post.ID = int(ids[index])
 		post.Thread = threadIdentifier
 		post.Forum = forumSlug
 		post.Created = created
-		fmt.Print(post.Created)
 		post.Author = authorRealNicknameMap[strings.ToLower(post.Author)]
 		post.Parents = append(post.Parents, int32(ids[index]))
 		batch.Queue("insertIntoPost", []interface{}{post.ID, post.Author, post.Message, post.Created, post.Forum, post.Thread, post.Parent, post.Parents, post.Parents[0]}, nil, nil)
+		*currentPosts = append(*currentPosts, post)
 	}
 
 	queryInsertForumUser := `INSERT INTO forum_users(forum, nickname) VALUES ($1, $2) ON CONFLICT DO NOTHING`
@@ -483,7 +483,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING created_at`
 	}
 
 	_ = tx.Commit()
-	return posts, nil
+	return currentPosts, nil
 }
 
 func (storage *Storage) UpdateThread(threadID int, threadUpdate *models.ThreadUpdate) (*models.Thread, error) {
