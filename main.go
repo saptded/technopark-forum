@@ -35,7 +35,7 @@ func initRouter(api *delivery.Api) *fasthttprouter.Router {
 
 	// service
 	router.GET("/api/service/status", api.GetStatus)
-	router.GET("/api/service/clear", api.Clear)
+	router.POST("/api/service/clear", api.Clear)
 
 	// user
 	router.POST("/api/user/:nickname/create", api.CreateUser)
