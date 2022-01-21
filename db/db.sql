@@ -1,5 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS CITEXT;
-DROP TABLE IF EXISTS users, forums, thread, post, vote, forum_users CASCADE;
+DROP TABLE IF EXISTS users, forums, threads, posts, votes, forum_users CASCADE;
 
 CREATE TABLE users
 (
@@ -26,7 +26,7 @@ CREATE TABLE threads
     forum      CITEXT COLLATE "C",
     message    TEXT NOT NULL,
     votes      INTEGER DEFAULT 0,
-    slug       CITEXT  DEFAULT NULL,
+    slug       CITEXT,
     created_at TIMESTAMP WITH TIME ZONE
 );
 
@@ -61,3 +61,12 @@ CREATE TABLE votes
     prev_voice    INTEGER DEFAULT 0,
     CONSTRAINT unique_user_and_thread UNIQUE (user_nickname, thread_id)
 );
+
+CREATE UNIQUE INDEX threads_slug_idx ON threads (slug);
+CREATE INDEX threads_slug_id_idx ON threads (slug, id);
+CREATE INDEX threads_forum_created_at_idx ON threads (forum, created_at);
+CREATE INDEX threads_forum_created_at_desc_idx ON threads (forum, created_at DESC);
+CREATE UNIQUE INDEX threads_id_forum_idx ON threads (id, forum);
+CREATE UNIQUE INDEX threads_slug_forum_idx ON threads (slug, forum);
+CREATE UNIQUE INDEX threads_cover_idx
+    ON threads (created_at, id, slug, title, message, forum, author, votes);

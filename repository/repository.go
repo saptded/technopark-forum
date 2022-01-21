@@ -211,13 +211,20 @@ func (storage *Storage) CreateThread(user *models.User, forum *models.Forum, thr
 			return existingThread, models.Conflict
 		}
 
+		_ = tx.Rollback()
 		return nil, err
 	}
 
 	queryUpdateForumUsers := `INSERT INTO forum_users(nickname, forum) VALUES ($1, $2) ON CONFLICT DO NOTHING`
-	_, _ = storage.db.Exec(queryUpdateForumUsers, thread.Author, thread.Forum)
-	queryUpdateForum := `UPDATE forums SET threads = threads + 1 WHERE slug =$1`
-	_, _ = storage.db.Exec(queryUpdateForum, thread.Forum)
+	_, err = storage.db.Exec(queryUpdateForumUsers, thread.Author, thread.Forum)
+	if err != nil {
+		return nil, err
+	}
+	queryUpdateForum := `UPDATE forums SET threads = forums.threads + 1 WHERE slug = $1`
+	_, err = storage.db.Exec(queryUpdateForum, thread.Forum)
+	if err != nil {
+		return nil, err
+	}
 
 	_ = tx.Commit()
 	return thread, nil
