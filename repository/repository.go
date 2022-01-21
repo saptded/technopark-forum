@@ -195,8 +195,15 @@ func (storage *Storage) CreateThread(user *models.User, forum *models.Forum, thr
 		_ = tx.Rollback()
 	}(tx)
 
+	var kostil *string
+	if thread.Slug == "" {
+		kostil = nil
+	} else {
+		kostil = &thread.Slug
+	}
+
 	err = tx.QueryRow(query, thread.Title, thread.Author, forum.Slug,
-		thread.Message, thread.Slug, thread.Created).
+		thread.Message, kostil, thread.Created).
 		Scan(&thread.ID)
 	if err != nil {
 		existingThread := new(models.Thread)
